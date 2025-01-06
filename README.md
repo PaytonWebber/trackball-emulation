@@ -34,7 +34,7 @@ Many trackball devices lack a dedicated scroll wheel, forcing you to use a separ
    ```
 2. **Run (as root)**  
    ```bash
-   sudo ./target/release/trackball-scroll
+   sudo ./target/release/trackball-emulation
    ```
 3. **Move** the trackball normally.  
 4. **Press** the back button to toggle scroll mode; move the trackball to scroll.  
@@ -46,7 +46,7 @@ If you want this to run automatically at boot:
 
 1. Copy the compiled binary to a system location, e.g.:
    ```bash
-   sudo cp target/release/trackball-scroll /usr/local/bin/trackball-scroll
+   sudo cp target/release/trackball-emulation /usr/local/bin/trackball-emulation
    ```
 2. Create a systemd unit file `/etc/systemd/system/trackball-scroller.service`:
    ```ini
@@ -56,7 +56,7 @@ If you want this to run automatically at boot:
 
    [Service]
    Type=simple
-   ExecStart=/usr/local/bin/trackball-scroll
+   ExecStart=/usr/local/bin/trackball-emulation
    Restart=always
    User=root
    Group=root
