@@ -7,7 +7,7 @@ A small Rust program that repurposes a trackball’s back button (BTN_SIDE) into
 Many trackball devices lack a dedicated scroll wheel, forcing you to use a separate method (like a scroll ring or on-screen scrollbar). By intercepting the physical back button and using it to toggle “scroll mode,” this program makes your trackball more versatile and efficient:
 
 - **Convenience**: No need for separate scroll rings, buttons, or keyboard shortcuts for scrolling.  
-- **Customization**: Easilyt adjust scrolling speed and pointer movement rate to your preference.
+- **Customization**: Easily adjust scrolling speed and pointer movement rate to your preference.
 
 ## How It Works
 

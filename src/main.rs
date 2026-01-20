@@ -1,31 +1,69 @@
 use evdev::{
     uinput, AttributeSet, Device, EventType, InputEvent, InputEventKind, Key, RelativeAxisType,
 };
-use std::io::Result;
+use std::io::{Error, ErrorKind, Result};
 
+/// Pointer speed multiplier for normal movement mode.
 const MOVE_RATE: f32 = 1.5;
 
+/// Scroll sensitivity factor. Lower values produce smoother/slower scrolling.
 const SCROLL_FACTOR: f32 = 0.2;
 
+/// Path to the trackball input device.
+const DEVICE_PATH: &str = "/dev/input/by-id/usb-Logitech_USB_Trackball-event-mouse";
+
 fn main() -> Result<()> {
-    let mut trackball = Device::open("/dev/input/by-id/usb-Logitech_USB_Trackball-event-mouse")?;
+    let mut trackball = Device::open(DEVICE_PATH).map_err(|e| {
+        Error::new(
+            ErrorKind::NotFound,
+            format!(
+                "Failed to open trackball device at '{}': {}. \
+                Ensure the device is connected and you have permission to access it (try running as root).",
+                DEVICE_PATH, e
+            ),
+        )
+    })?;
 
-    trackball.grab()?;
+    trackball.grab().map_err(|e| {
+        Error::new(
+            ErrorKind::PermissionDenied,
+            format!(
+                "Failed to grab exclusive access to trackball: {}. \
+                Another program may be using the device, or you may need root permissions.",
+                e
+            ),
+        )
+    })?;
 
-    let mut virtual_device = uinput::VirtualDeviceBuilder::new()?
+    let mut virtual_device = uinput::VirtualDeviceBuilder::new()
+        .map_err(|e| {
+            Error::new(
+                ErrorKind::PermissionDenied,
+                format!(
+                    "Failed to create virtual device builder: {}. \
+                    Ensure /dev/uinput is accessible (try running as root).",
+                    e
+                ),
+            )
+        })?
         .name("Virtual Scroll Device")
         .with_relative_axes(&AttributeSet::from_iter([
             RelativeAxisType::REL_X,
             RelativeAxisType::REL_Y,
             RelativeAxisType::REL_WHEEL,
             RelativeAxisType::REL_HWHEEL,
-        ]))?
+        ]))
+        .map_err(|e| Error::other(format!("Failed to configure relative axes: {}", e)))?
         .with_keys(&AttributeSet::from_iter([
             Key::BTN_LEFT,
             Key::BTN_RIGHT,
             Key::BTN_MIDDLE,
-        ]))?
-        .build()?;
+        ]))
+        .map_err(|e| Error::other(format!("Failed to configure key events: {}", e)))?
+        .build()
+        .map_err(|e| Error::other(format!("Failed to build virtual device: {}", e)))?;
+
+    eprintln!("Trackball scroll emulation started. Press the back button to toggle scroll mode.");
 
     let mut scroll_mode = false;
 
