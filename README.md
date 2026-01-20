@@ -6,8 +6,8 @@ A small Rust program that repurposes a trackball’s back button (BTN_SIDE) into
 
 Many trackball devices lack a dedicated scroll wheel, forcing you to use a separate method (like a scroll ring or on-screen scrollbar). By intercepting the physical back button and using it to toggle “scroll mode,” this program makes your trackball more versatile and efficient:
 
-- **Convenience**: No need for separate scroll rings, buttons, or keyboard shortcuts for scrolling.  
-- **Customization**: Easilyt adjust scrolling speed and pointer movement rate to your preference.
+- **Convenience**: No need for separate scroll rings, buttons, or keyboard shortcuts for scrolling.
+- **Customization**: Easily adjust scrolling speed and pointer movement rate to your preference.
 
 ## How It Works
 
@@ -28,16 +28,24 @@ Many trackball devices lack a dedicated scroll wheel, forcing you to use a separ
 
 ## Usage
 
-1. **Build**  
+1. **Build**
    ```bash
    cargo build --release
    ```
-2. **Run (as root)**  
+2. **Run (as root)**
    ```bash
-   sudo ./target/release/trackball-emulation
+   sudo ./target/release/trackball-scroll
    ```
-3. **Move** the trackball normally.  
-4. **Press** the back button to toggle scroll mode; move the trackball to scroll.  
+   By default, it uses the Logitech USB Trackball device. To use a different trackball, pass the device path as an argument:
+   ```bash
+   sudo ./target/release/trackball-scroll /dev/input/by-id/usb-Kensington_SlimBlade-event-mouse
+   ```
+   To see available options:
+   ```bash
+   ./target/release/trackball-scroll --help
+   ```
+3. **Move** the trackball normally.
+4. **Press** the back button to toggle scroll mode; move the trackball to scroll.
 5. **Release** the back button to revert to normal pointer movement.
 
 ## Systemd Service Setup
@@ -46,7 +54,7 @@ If you want this to run automatically at boot:
 
 1. Copy the compiled binary to a system location, e.g.:
    ```bash
-   sudo cp target/release/trackball-emulation /usr/local/bin/trackball-emulation
+   sudo cp target/release/trackball-scroll /usr/local/bin/trackball-scroll
    ```
 2. Create a systemd unit file `/etc/systemd/system/trackball-scroller.service`:
    ```ini
@@ -56,13 +64,17 @@ If you want this to run automatically at boot:
 
    [Service]
    Type=simple
-   ExecStart=/usr/local/bin/trackball-emulation
+   ExecStart=/usr/local/bin/trackball-scroll
    Restart=always
    User=root
    Group=root
 
    [Install]
    WantedBy=multi-user.target
+   ```
+   If you have a different trackball device, add the device path to ExecStart:
+   ```ini
+   ExecStart=/usr/local/bin/trackball-scroll /dev/input/by-id/your-trackball-device
    ```
 3. Enable and start the service:
    ```bash
