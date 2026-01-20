@@ -1,14 +1,42 @@
 use evdev::{
     uinput, AttributeSet, Device, EventType, InputEvent, InputEventKind, Key, RelativeAxisType,
 };
-use std::io::Result;
+use std::env;
+use std::io::{Error, ErrorKind, Result};
 
 const MOVE_RATE: f32 = 1.5;
 
 const SCROLL_FACTOR: f32 = 0.2;
 
+const DEFAULT_DEVICE: &str = "/dev/input/by-id/usb-Logitech_USB_Trackball-event-mouse";
+
 fn main() -> Result<()> {
-    let mut trackball = Device::open("/dev/input/by-id/usb-Logitech_USB_Trackball-event-mouse")?;
+    let args: Vec<String> = env::args().collect();
+
+    let device_path = if args.len() > 1 {
+        if args[1] == "--help" || args[1] == "-h" {
+            eprintln!("Usage: {} [DEVICE_PATH]", args[0]);
+            eprintln!();
+            eprintln!("Emulates scroll wheel using trackball movement when the back button is held.");
+            eprintln!();
+            eprintln!("Arguments:");
+            eprintln!("  DEVICE_PATH  Path to the input device (default: {})", DEFAULT_DEVICE);
+            eprintln!();
+            eprintln!("Example:");
+            eprintln!("  {} /dev/input/by-id/usb-Kensington_SlimBlade-event-mouse", args[0]);
+            return Ok(());
+        }
+        &args[1]
+    } else {
+        DEFAULT_DEVICE
+    };
+
+    let mut trackball = Device::open(device_path).map_err(|e| {
+        Error::new(
+            ErrorKind::Other,
+            format!("Failed to open device '{}': {}. Check that the device exists and you have permission to access it (try running with sudo).", device_path, e),
+        )
+    })?;
 
     trackball.grab()?;
 
